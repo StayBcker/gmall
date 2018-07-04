@@ -83,7 +83,7 @@
         var attrJson ={} ; // 空的json对象
         // 取得数据 getRows
         var attrValueRows =  $("#dg_av").datagrid("getRows");
-        // 循环每一行数据进行封装 itar ,iter, fori
+        // 循环每一行数据进行封装
         for (var i = 0; i < attrValueRows.length; i++) {
             // 跟实体类的属性名称一致 属性值的集合  private List<BaseAttrValue> attrValueList;
             attrJson["attrValueList["+i+"].id"] = attrValueRows[i].id; // attrJson[attrValueList[0].id] = 10;
@@ -106,8 +106,6 @@
         })
 
     }
-
-
 
     /*需要一个对datagrid控件的初始化操作 初始化两个按钮，以及排头属性名称*/
     function initAttrValueDatagrid() {

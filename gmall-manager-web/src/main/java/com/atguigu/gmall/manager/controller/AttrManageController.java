@@ -1,10 +1,7 @@
 package com.atguigu.gmall.manager.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
-import com.atguigu.gmall.bean.BaseAttrInfo;
-import com.atguigu.gmall.bean.BaseCatalog1;
-import com.atguigu.gmall.bean.BaseCatalog2;
-import com.atguigu.gmall.bean.BaseCatalog3;
+import com.atguigu.gmall.bean.*;
 import com.atguigu.gmall.service.ManagerService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,9 +66,19 @@ public class AttrManageController {
         return "attrListPage";
     }
 
+    //保存属性 dialog会话窗口点击保存按钮
     @RequestMapping(value = "saveAttrInfo",method = RequestMethod.POST)
     @ResponseBody
     public void saveAttrInfo(BaseAttrInfo baseAttrInfo){
         managerService.saveAttrInfo(baseAttrInfo);
+    }
+
+    //编辑属性值,先查询出来需要编辑得属性，在针对其进行编辑属性值
+    @RequestMapping("getAttrValueList")
+    @ResponseBody
+    public List<BaseAttrValue> getAttrValueList(String attrId){
+        //根据attrId查询
+        BaseAttrInfo attrInfo = managerService.getAttrInfo(attrId);
+        return attrInfo.getAttrValueList();
     }
 }

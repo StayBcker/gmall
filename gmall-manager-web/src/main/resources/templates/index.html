@@ -9,16 +9,22 @@
     <link rel="stylesheet" type="text/css" href="/easyui/themes/icon.css">
     <link rel="stylesheet" type="text/css" href="/easyui/themes/default/easyui.css">
 
+    <!--引入图片上传工具Uploader-->
+    <link rel="stylesheet" type="text/css" href="/webuploader/webuploader.css">
+    <script type="text/javascript" src="/webuploader/webuploader.js"></script>
+    <script type="text/javascript" src="/easyui/datagrid-detailview.js"></script>
+
+
 </head>
 
 <body class="easyui-layout">
 
     <!--这是引入EasyUI-->
     <div data-options="region:'north',title:'头部',split:true" style="height:100px;">
-        <h1 style="text-align: center;color: rgba(118,9,2,0.96)"> 人活一生 </h1>
+        <h1 style="text-align: center;color: rgba(118,9,2,0.96)"> 劈腿是一种本能 </h1>
     </div>
     <div data-options="region:'south',title:'底部',split:true" style="height:100px;">
-        <h1>苟活一世 </h1>
+        <h1 style="text-align: center;color: rgba(118,9,2,0.96)">忠诚是一种选择 </h1>
     </div>
     <div data-options="region:'west',title:'左部',split:true" style="width:200px;">
         <div class="easyui-accordion" style="overflow:auto;">
@@ -28,7 +34,10 @@
                 </ul>
             </div>
             <div title="商品信息管理">
-                <h1>商品信息管理</h1>
+                <ul class="nav">
+                    <li><a href="javascript:add_tab('商品信息管理','spuListPage')" style="text-decoration:none;">商品SPU管理</a></li>
+                </ul>
+
             </div>
             <div title="广告管理">
                 <h1>广告管理</h1>

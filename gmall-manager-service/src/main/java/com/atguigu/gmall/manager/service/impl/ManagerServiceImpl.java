@@ -26,6 +26,9 @@ public class ManagerServiceImpl implements ManagerService {
     @Autowired
     private BaseAttrValueMapper baseAttrValueMapper;
 
+    @Autowired
+    private SpuInfoMapper spuInfoMapper;
+
     @Override
     public List<BaseCatalog1> getCatalog1() {
         return baseCatalog1Mapper.selectAll();
@@ -35,7 +38,7 @@ public class ManagerServiceImpl implements ManagerService {
     @Override
     public List<BaseCatalog2> getCatalog2(String catalog1Id) {
         BaseCatalog2 baseCatalog2 = new BaseCatalog2();
-        baseCatalog2.setId(catalog1Id);
+        baseCatalog2.setCatalog1Id(catalog1Id);
         List<BaseCatalog2> baseCatalog2List = baseCatalog2Mapper.select(baseCatalog2);
         return baseCatalog2List;
     }
@@ -43,7 +46,7 @@ public class ManagerServiceImpl implements ManagerService {
     @Override
     public List<BaseCatalog3> getCatalog3(String catalog2Id) {
         BaseCatalog3 baseCatalog3 = new BaseCatalog3();
-        baseCatalog3.setId(catalog2Id);
+        baseCatalog3.setCatalog2Id(catalog2Id);
         List<BaseCatalog3> baseCatalog3List = baseCatalog3Mapper.select(baseCatalog3);
         return baseCatalog3List;
     }
@@ -62,16 +65,16 @@ public class ManagerServiceImpl implements ManagerService {
     //dialog会话窗口点击保存，属性与属性值分开保存
     @Override
     public void saveAttrInfo(BaseAttrInfo baseAttrInfo) {
-        //判断是否有主键，有就是编辑 没有就是保存  保存属性
+        //判断是否有主键，有就是编辑 没有就是保存
         if (baseAttrInfo.getId()!=null&&baseAttrInfo.getId().length()>0){
             //有主键，修改
             baseAttrInfoMapper.updateByPrimaryKey(baseAttrInfo);
         }else{
-            //如果没有主键的话，则需要设置ID为null
+            //如果没有主键的话，则需要设置ID为null  保存属性
             if(baseAttrInfo.getId().length()==0){
                 baseAttrInfo.setId(null);
             }
-            //开始插入数据
+            //开始插入数据 选择性插入
             baseAttrInfoMapper.insertSelective(baseAttrInfo);
         }
 
@@ -95,8 +98,22 @@ public class ManagerServiceImpl implements ManagerService {
         }
     }
 
+    //编辑属性值
     @Override
     public BaseAttrInfo getAttrInfo(String attrId) {
-        return null;
+        //获取选中得属性根据属性ID参数
+        BaseAttrInfo attrInfo = baseAttrInfoMapper.selectByPrimaryKey(attrId);
+        //获取属性值对象
+        BaseAttrValue baseAttrValue = new BaseAttrValue();
+        //设置属性值对象得属性ID，使该属性值对象为选中得那个
+        baseAttrValue.setAttrId(attrInfo.getId());
+        List<BaseAttrValue> attrValues = baseAttrValueMapper.select(baseAttrValue);
+        attrInfo.setAttrValueList(attrValues);
+        return attrInfo;
+    }
+
+    @Override
+    public List<SpuInfo> getSpuInfoList(SpuInfo spuInfo) {
+        return spuInfoMapper.select(spuInfo);
     }
 }
