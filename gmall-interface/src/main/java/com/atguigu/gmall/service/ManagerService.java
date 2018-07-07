@@ -18,4 +18,10 @@ public interface ManagerService {
     //记载spu属性列表
     List<SpuInfo> getSpuInfoList(SpuInfo spuInfo);
 
+    //查找销售属性
+    List<BaseSaleAttr> getBaseSaleAttrList();
+
+    //保存商品信息
+    void saveSpuInfo(SpuInfo spuInfo);
+
 }

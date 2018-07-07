@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"  xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
@@ -48,17 +48,81 @@
             </div>
         </div>
 
-        <!--引用页面-->
-        <!-- <div th:include="spuSaleAttrPage"></div>-->
+        <!--引用页面，跳转到销售属性页面，-->
+        <div th:include="spuSaleAttrPage"></div>
 
     </form>
 </div>
 <!----------------弹出框的按钮组----------------------->
 <div id="spuBtns">
-    <a href="#" class="easyui-linkbutton" onclick="saveSpu()">保 存</a>
-    <a href="#" class="easyui-linkbutton" onclick="closeSpu()">关 闭</a>
+    <a href="#" class="easyui-linkbutton" onclick="saveSpu()">保存</a>
+    <a href="#" class="easyui-linkbutton" onclick="javascript:$('#spu_dlg').dialog('close')">关 闭</a>
 </div>
 <script type="text/javascript">
+
+     //保存销售属性页面 SpuSaleAttrPage！！！！！！！！！！
+    function saveSpu() {
+            //保存的时候保存的是SpuInfo，SpuImange，SpuSaleAttr，SpuSaleAttrValue，传入一个spuInfo对象到Controller
+            //创建一个json字符串对象
+        var spuInfo={};
+            //保存单独的字段
+             spuInfo["id"]=$("#spuId").val();
+        spuInfo["spuName"]=$("#spuName").val();
+        spuInfo["description"]=$("#description").val();
+        spuInfo["catalog3Id"]=$("#ctg3ForSpuList").combobox("getValue");
+
+        //保存销售属性，循环两次，一次获得属性名，还需要获得属性值
+        var spuSaleAttrDgRows = $("#spuSaleAttrDg").datagrid("getRows");
+        for (var i = 0; i < spuSaleAttrDgRows.length; i++) {
+            // 保存销售属性名称
+            spuInfo['spuSaleAttrList['+i+'].id'] = spuSaleAttrDgRows[i].id;
+            spuInfo['spuSaleAttrList['+i+'].saleAttrId'] = spuSaleAttrDgRows[i].saleAttrId;
+            spuInfo['spuSaleAttrList['+i+'].saleAttrName'] = spuSaleAttrDgRows[i].saleAttrName;
+            // 保存销售属性值
+            // { field:'spuSaleAttrValueJson',title:'销售属性值暂存', width:'50%'}
+            var saleAttrValueRows  = spuSaleAttrDgRows[i].spuSaleAttrValueJson.rows;
+            // 循环属性值,
+            for (var j = 0; j < saleAttrValueRows.length; j++) {
+                // spuinfo.spuSaleAttrList[i].spuSaleAttrValueList[j].saleAttrValueName
+                spuInfo['spuSaleAttrList['+i+'].spuSaleAttrValueList['+j+'].id'] = saleAttrValueRows[j].id;
+                spuInfo['spuSaleAttrList['+i+'].spuSaleAttrValueList['+j+'].saleAttrId'] = spuSaleAttrDgRows[i].saleAttrId;
+                spuInfo['spuSaleAttrList['+i+'].spuSaleAttrValueList['+j+'].saleAttrValueName'] = saleAttrValueRows[j].saleAttrValueName;
+            }
+        }
+           //获取图片列表的所有Rows
+        var spuImgDgRows = $("#spuImgDg").datagrid("getRows");
+        //保存图片信息，需要循环去获得图片的信息，一次循环只能获得name，还有一次循环获得url
+        for (var i = 0; i < spuImgDgRows.length; i++) {
+            spuInfo['spuImageList['+i+'].imgName'] = spuImgDgRows[i].imgName;
+            spuInfo['spuImageList['+i+'].imgUrl'] = spuImgDgRows[i].imgUrl;
+        }
+        // 输出数据
+        // console.log(JSON.stringify(spuInfo));
+
+        // 保存数据
+        $.post("saveSpuInfo",spuInfo,function (data) {
+            // 关闭dialog
+            $("#spu_dlg").dialog("close");
+            // 加载数据
+            $("#spulist_dg").datagrid("reload");
+
+        })
+
+    }
+
+    //编辑销售属性 事件
+    function editSpuSaleAttr () {
+        //根据选中的spuId来查询对应的销售属性ID
+        var spuId = $("#spuId").val();
+        //查询对应的销售属性
+        var spuSaleAttr = $("#spuSaleAttrDg").datagrid("getSelected");
+        initSpuSaleAttrDlg(spuId,spuSaleAttr);
+    }
+
+    //点击添加销售属性事件，弹出弹出框，初始化dialog控件
+    function addSpuSaleAttr () {
+        initSpuSaleAttrDlg();
+    }
     // 初始化
     function addSpuInfo() {
         // 调用初始化initSpuInfoDlg()方法
@@ -150,6 +214,11 @@
             /*datagrid-detailview.js 能够查看图片上传之后的效果*/
             view: detailview,
             detailFormatter: function (rowIndex, rowData) {
+                //加上一个判断，防止出现上传路径404！！！！
+                if (rowData.imgUrl==null){
+                    return ;
+                }
+
                 return "<img src=" + rowData.imgUrl + " style='width:100px;height:100px;'>";
             }
         });
@@ -246,9 +315,6 @@
 
 
     }
-
-
-
 
 </script>
 </body>

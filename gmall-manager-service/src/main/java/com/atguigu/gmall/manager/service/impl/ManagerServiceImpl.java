@@ -29,6 +29,18 @@ public class ManagerServiceImpl implements ManagerService {
     @Autowired
     private SpuInfoMapper spuInfoMapper;
 
+    @Autowired
+    private BaseSaleAttrMapper baseSaleAttrMapper;
+
+    @Autowired
+    private  SpuImageMapper spuImageMapper;
+
+    @Autowired
+    private SpuSaleAttrMapper spuSaleAttrMapper;
+
+    @Autowired
+    private  SpuSaleAttrValueMapper spuSaleAttrValueMapper;
+
     @Override
     public List<BaseCatalog1> getCatalog1() {
         return baseCatalog1Mapper.selectAll();
@@ -106,14 +118,83 @@ public class ManagerServiceImpl implements ManagerService {
         //获取属性值对象
         BaseAttrValue baseAttrValue = new BaseAttrValue();
         //设置属性值对象得属性ID，使该属性值对象为选中得那个
-        baseAttrValue.setAttrId(attrInfo.getId());
+        baseAttrValue.setAttrId(attrInfo.getId());  //ID必须为attrInfo的attr_ID，否则报错！！！
         List<BaseAttrValue> attrValues = baseAttrValueMapper.select(baseAttrValue);
         attrInfo.setAttrValueList(attrValues);
         return attrInfo;
     }
 
+    //获取spu商品列表
     @Override
     public List<SpuInfo> getSpuInfoList(SpuInfo spuInfo) {
         return spuInfoMapper.select(spuInfo);
+    }
+
+    //获取销售属性List
+    @Override
+    public List<BaseSaleAttr> getBaseSaleAttrList() {
+        return baseSaleAttrMapper.selectAll();
+    }
+
+    //保存！！！！！
+    @Override
+    public void saveSpuInfo(SpuInfo spuInfo) {
+        //保存spuInfo字段 ，编辑 保存一起操作
+        //先判断spuInfo是编辑，ID存在
+        if (spuInfo.getId()!=null&&spuInfo.getId().length()>0){
+            spuInfoMapper.updateByPrimaryKey(spuInfo);
+        }else{
+            //判断spuInfo是保存，ID不存在  选择性插入
+            if (spuInfo.getId()!=null&&spuInfo.getId().length()==0){   //担心出现 "" 种情况
+
+                spuInfo.setId(null);
+            }
+            spuInfoMapper.insertSelective(spuInfo);
+        }
+
+        //保存图片.先删除，再保存
+        SpuImage spuImage = new SpuImage();
+        spuImage.setSpuId(spuInfo.getId());
+        spuImageMapper.delete(spuImage);
+        //保存之前先判断
+        List<SpuImage> spuImageList = spuInfo.getSpuImageList();
+        for (SpuImage image : spuImageList) {
+            if(image.getId()!=null&&image.getId().length()==0){
+                image.setId(null);
+            }
+            // 因为前台页面传递的数据没有spuId 所以设置 spuId
+            image.setSpuId(spuInfo.getId());
+            spuImageMapper.insertSelective(image);
+        }
+
+        //保存销售属性与值,先删除，再保存
+        SpuSaleAttr spuSaleAttr = new SpuSaleAttr();
+        spuSaleAttr.setSpuId(spuInfo.getId());
+        spuSaleAttrMapper.delete(spuSaleAttr);
+
+        SpuSaleAttrValue spuSaleAttrValue = new SpuSaleAttrValue();
+        spuSaleAttrValue.setSpuId(spuInfo.getId());
+        spuSaleAttrValueMapper.delete(spuSaleAttrValue);
+
+        //获取spuInfo下的spuAttrList
+        List<SpuSaleAttr> spuSaleAttrList = spuInfo.getSpuSaleAttrList();
+        //判断
+        for (SpuSaleAttr saleAttr : spuSaleAttrList) {
+            if (saleAttr.getId()!=null&&saleAttr.getId().length()==0){
+                saleAttr.setId(null);
+            }
+            saleAttr.setSpuId(spuInfo.getId());
+            spuSaleAttrMapper.insertSelective(saleAttr);
+
+            //获取每一个spuSaleAttr的spuAttrValueList
+            List<SpuSaleAttrValue> spuSaleAttrValueList = saleAttr.getSpuSaleAttrValueList();
+            for (SpuSaleAttrValue saleAttrValue : spuSaleAttrValueList) {
+                if(saleAttrValue.getId()!=null&&saleAttrValue.getId().length()==0){
+                    saleAttrValue.setId(null);
+                }
+                saleAttrValue.setSpuId(spuInfo.getId());
+                spuSaleAttrValueMapper.insertSelective(saleAttrValue);
+            }
+        }
     }
 }
