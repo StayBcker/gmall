@@ -24,4 +24,12 @@ public interface ManagerService {
     //保存商品信息
     void saveSpuInfo(SpuInfo spuInfo);
 
+    //根据spuId获取Spu图片
+    List<SpuImage> getSpuImageList(String spuId);
+
+    //根据spuId获取销售属性集合
+    List<SpuSaleAttr> getSpuSaleAttrList(String spuId);
+
+    //保存信息
+    void saveSku(SkuInfo skuInfo);
 }

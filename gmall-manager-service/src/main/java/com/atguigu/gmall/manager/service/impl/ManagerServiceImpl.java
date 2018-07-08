@@ -41,6 +41,18 @@ public class ManagerServiceImpl implements ManagerService {
     @Autowired
     private  SpuSaleAttrValueMapper spuSaleAttrValueMapper;
 
+    @Autowired
+    private SkuImageMapper skuImageMapper;
+
+    @Autowired
+    private SkuAttrValueMapper skuAttrValueMapper;
+
+    @Autowired
+    private SkuSaleAttrValueMapper skuSaleAttrValueMapper;
+
+    @Autowired
+    private SkuInfoMapper skuInfoMapper;
+
     @Override
     public List<BaseCatalog1> getCatalog1() {
         return baseCatalog1Mapper.selectAll();
@@ -66,12 +78,13 @@ public class ManagerServiceImpl implements ManagerService {
     //获取属性，根据属性中三级分类的数据的ID
     @Override
     public List<BaseAttrInfo> getAttrList(String catalog3Id) {
-        BaseAttrInfo baseAttrInfo = new BaseAttrInfo();
-        //设置属性列表为选中三级分类数据指定ID的属性列表
-        baseAttrInfo.setCatalog3Id(catalog3Id);
-        //查询
-        List<BaseAttrInfo> baseAttrInfos = baseAttrInfoMapper.select(baseAttrInfo);
-        return baseAttrInfos;
+//        BaseAttrInfo baseAttrInfo = new BaseAttrInfo();
+//        //设置属性列表为选中三级分类数据指定ID的属性列表
+//        baseAttrInfo.setCatalog3Id(catalog3Id);
+//        //查询
+//        List<BaseAttrInfo> baseAttrInfos = baseAttrInfoMapper.select(baseAttrInfo);
+//        return baseAttrInfos;
+        return baseAttrInfoMapper.getBaseAttrInfoListByCatalog3Id(Long.parseLong(catalog3Id));
     }
 
     //dialog会话窗口点击保存，属性与属性值分开保存
@@ -196,5 +209,73 @@ public class ManagerServiceImpl implements ManagerService {
                 spuSaleAttrValueMapper.insertSelective(saleAttrValue);
             }
         }
+    }
+
+    @Override
+    public List<SpuImage> getSpuImageList(String spuId) {
+        SpuImage spuImage = new SpuImage();
+        spuImage.setSpuId(spuId);
+        return spuImageMapper.select(spuImage);
+    }
+
+    @Override
+    public List<SpuSaleAttr> getSpuSaleAttrList(String spuId) {
+        List<SpuSaleAttr> spuSaleAttrs = spuSaleAttrMapper.selectSpuSaleAttrList(Long.parseLong(spuId));
+        return spuSaleAttrs;
+    }
+
+    //保存Sku信息
+    @Override
+    public void saveSku(SkuInfo skuInfo) {
+        //添加SkuInfo数据
+        if (skuInfo.getId()==null || skuInfo.getId().length()==0){
+            skuInfo.setId(null);
+            skuInfoMapper.insertSelective(skuInfo);
+        } else {
+            skuInfoMapper.updateByPrimaryKey(skuInfo);
+        }
+
+        // 先删除，再添加
+        SkuAttrValue skuAttrValue = new SkuAttrValue();
+        // SkuId = SkuInfo.id
+        skuAttrValue.setSkuId(skuInfo.getId());
+        skuAttrValueMapper.delete(skuAttrValue);
+
+        List<SkuAttrValue> skuAttrValueList = skuInfo.getSkuAttrValueList();
+        for (SkuAttrValue attrValue : skuAttrValueList) {
+            // 坑！
+            attrValue.setSkuId(skuInfo.getId());
+            if (attrValue.getId()!=null&& attrValue.getId().length()==0){
+                attrValue.setId(null);
+            }
+            skuAttrValueMapper.insertSelective(attrValue);
+        }
+        // 属性值添加
+        SkuSaleAttrValue skuSaleAttrValue = new SkuSaleAttrValue();
+        skuSaleAttrValue.setSkuId(skuInfo.getId());
+        skuSaleAttrValueMapper.delete(skuSaleAttrValue);
+
+        List<SkuSaleAttrValue> skuSaleAttrValueList = skuInfo.getSkuSaleAttrValueList();
+        for (SkuSaleAttrValue saleAttrValue : skuSaleAttrValueList) {
+            saleAttrValue.setSkuId(skuInfo.getId());
+            if (saleAttrValue.getId()!=null && saleAttrValue.getId().length()==0){
+                saleAttrValue.setSkuId(null);
+            }
+            skuSaleAttrValueMapper.insertSelective(saleAttrValue);
+        }
+        // 图片添加
+        SkuImage skuImage = new SkuImage();
+        skuImage.setSkuId(skuInfo.getId());
+        skuImageMapper.delete(skuImage);
+
+        List<SkuImage> skuImageList = skuInfo.getSkuImageList();
+        for (SkuImage image : skuImageList) {
+            image.setSkuId(skuInfo.getId());
+            if (image.getId()!=null && image.getId().length()==0){
+                image.setId(null);
+            }
+            skuImageMapper.insertSelective(image);
+        }
+
     }
 }

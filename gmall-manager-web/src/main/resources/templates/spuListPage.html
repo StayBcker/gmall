@@ -65,14 +65,22 @@
 <!--include:包含xxx-->
 <!--引入spuInfoPage页面-->
 <div th:include="spuInfoPage"></div>
-<!--
+
+<!--引入Sku商品详情页面-->
 <div th:include="skuInfoPage"></div>
 
-<div th:include="skuListPage"></div>-->
+<!--<div th:include="skuListPage"></div>-->
 </body>
 
 <!--列表页面点击【添加】出现对话框-->
 <script type="text/javascript">
+
+    function addSkuInfo() {
+        var spuRow = $('#spulist_dg').datagrid('getSelected');
+        var ctg3val=$("#ctg3ForSpuList").combobox('getValue');
+        initSkuInfoDlg(spuRow.id,'',ctg3val);//在skuInfoPage.html中 完成初始化
+
+    }
     function addSpuInfo(){
         // 初始化spudlg
         initSpuInfoDlg();  //在spuInfoPage.html中
