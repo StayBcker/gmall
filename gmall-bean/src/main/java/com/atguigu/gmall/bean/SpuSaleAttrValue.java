@@ -2,6 +2,7 @@ package com.atguigu.gmall.bean;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 import java.io.Serializable;
 
 public class SpuSaleAttrValue implements Serializable {
@@ -18,6 +19,18 @@ public class SpuSaleAttrValue implements Serializable {
 
     @Column
     String saleAttrValueName;
+
+    //判断标志，是否有该属性 属性值的商品
+    @Transient
+    String isChecked;
+
+    public String getIsChecked() {
+        return isChecked;
+    }
+
+    public void setIsChecked(String isChecked) {
+        this.isChecked = isChecked;
+    }
 
     public String getId() {
         return id;

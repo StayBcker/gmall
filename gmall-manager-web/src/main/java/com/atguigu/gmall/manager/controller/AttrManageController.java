@@ -2,12 +2,15 @@ package com.atguigu.gmall.manager.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.atguigu.gmall.bean.*;
+import com.atguigu.gmall.service.ListService;
 import com.atguigu.gmall.service.ManagerService;
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 //左侧属性列表页面增加controller
@@ -16,6 +19,9 @@ public class AttrManageController {
 
     @Reference
     private ManagerService managerService;
+
+    @Reference
+    private ListService listService;
 
     /**
      * 获得一级分类
@@ -80,5 +86,23 @@ public class AttrManageController {
         //根据attrId查询
         BaseAttrInfo attrInfo = managerService.getAttrInfo(attrId);
         return attrInfo.getAttrValueList();
+    }
+
+    //根据skuIn将商品skuInfo保存到es中定义的skuLsInfo
+    @RequestMapping(value = "onSale" ,method = RequestMethod.GET)
+    @ResponseBody
+    public void onSale(String skuId){
+        SkuInfo skuInfo = managerService.getSkuInfo(skuId);
+        SkuLsInfo skuLsInfo = new SkuLsInfo();
+        //目标文件是 skuLsInfo，需要将查找出来的skuInfo保存到es中定义好的skuLsInfo中
+        try {
+            BeanUtils.copyProperties(skuLsInfo,skuInfo);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        //保存，将商品销售属性保存到es中 需要上架的商品销售属性
+        listService.saveSkuInfo(skuLsInfo);
     }
 }

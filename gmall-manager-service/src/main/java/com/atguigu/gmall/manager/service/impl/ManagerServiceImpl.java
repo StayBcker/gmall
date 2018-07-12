@@ -1,10 +1,14 @@
 package com.atguigu.gmall.manager.service.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
 import com.atguigu.gmall.bean.*;
+import com.atguigu.gmall.config.RedisUtil;
+import com.atguigu.gmall.manager.constant.ManageConst;
 import com.atguigu.gmall.manager.mapper.*;
 import com.atguigu.gmall.service.ManagerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import redis.clients.jedis.Jedis;
 
 import java.util.List;
 
@@ -53,6 +57,8 @@ public class ManagerServiceImpl implements ManagerService {
     @Autowired
     private SkuInfoMapper skuInfoMapper;
 
+    @Autowired
+    private RedisUtil redisUtil;
     @Override
     public List<BaseCatalog1> getCatalog1() {
         return baseCatalog1Mapper.selectAll();
@@ -278,4 +284,70 @@ public class ManagerServiceImpl implements ManagerService {
         }
 
     }
+
+//======================================前台页面商品详情==========================================
+    //根据skuId查询商品信息，图片需要获得，根据skuId
+    @Override
+    public SkuInfo getSkuInfo(String skuId) {
+        SkuInfo skuInfo=null;
+        Jedis jedis = redisUtil.getJedis();
+        //根据传入的skuId获取唯一的key
+        String skuInfoKey = ManageConst.SKUKEY_PREFIX + skuId + ManageConst.SKUKEY_SUFFIX;
+        //判断key在不在redis中
+        if(jedis.exists("skuInfoKey")){
+            //如果存在，则从redis中获取
+            String skuInfoJson = jedis.get("SkuInfoKey");
+            //判断获取到的skuInfoJson是不是空
+            if (skuInfoJson!=null && !"".equals(skuInfoJson)){
+                //不是的话则将字符串转换为对象
+                skuInfo = JSON.parseObject(skuInfoJson, SkuInfo.class);
+                return skuInfo;
+            }
+        }else{
+            //不存在就从数据库中获取
+            skuInfo = getSkuInfoDB(skuId);
+            //将对象转换为JSON字符串
+            jedis.setex(skuInfoKey,ManageConst.SKUKEY_TIMEOUT,JSON.toJSONString(skuInfo));
+            return skuInfo;
+        }
+        return skuInfo;
+    }
+
+    //方法提取之后
+    private SkuInfo getSkuInfoDB(String skuId) {
+        SkuInfo skuInfo = skuInfoMapper.selectByPrimaryKey(skuId);
+        //创建skuImage对象，
+        SkuImage skuImage = new SkuImage();
+        skuImage.setSkuId(skuId);
+        //获取sku图片列表
+        List<SkuImage> skuImageList = skuImageMapper.select(skuImage);
+        //将图片列表放到选中的商品信息中
+        skuInfo.setSkuImageList(skuImageList);
+        //给skuInfo添加销售属性
+        SkuAttrValue skuAttrValue = new SkuAttrValue();
+        skuAttrValue.setSkuId(skuId);
+        List<SkuAttrValue> skuAttrValueList = skuAttrValueMapper.select(skuAttrValue);
+        skuInfo.setSkuAttrValueList(skuAttrValueList);
+        //给skuInfo添加属性值
+        SkuSaleAttrValue skuSaleAttrValue = new SkuSaleAttrValue();
+        skuSaleAttrValue.setSkuId(skuId);
+        skuInfo.setSkuSaleAttrValueList(skuSaleAttrValueMapper.select(skuSaleAttrValue));
+
+        return skuInfo;
+    }
+
+    //根据spuId，skuId查询一致对应的销售属性以及销售属性值方法的实现
+    @Override
+    public List<SpuSaleAttr> selectSpuSaleAttrListCheckBySku(SkuInfo skuInfo) {
+        List<SpuSaleAttr> spuSaleAttrs = spuSaleAttrMapper.selectSpuSaleAttrListCheckBySku(Long.parseLong(skuInfo.getId()), Long.parseLong(skuInfo.getSpuId()));
+        return spuSaleAttrs;
+    }
+
+    //根据spuId拼接属性值方法实现
+    @Override
+    public List<SkuSaleAttrValue> getSkuSaleAttrValueListBySpu(String spuId) {
+        List<SkuSaleAttrValue> skuSaleAttrValues = skuSaleAttrValueMapper.selectSkuSaleAttrValueListBySpu(spuId);
+        return skuSaleAttrValues;
+    }
+
 }

@@ -32,4 +32,15 @@ public interface ManagerService {
 
     //保存信息
     void saveSku(SkuInfo skuInfo);
+
+    //========================================前台页面商品详情===============================================
+
+    //根据skuId查找商品的信息，
+    SkuInfo getSkuInfo(String skuId);
+
+    //根据spuId，skuId查询一致对应的销售属性以及销售属性值
+    List<SpuSaleAttr> selectSpuSaleAttrListCheckBySku(SkuInfo skuInfo);
+
+    //根据spiId拼接属性值
+    List<SkuSaleAttrValue> getSkuSaleAttrValueListBySpu(String spuId);
 }
