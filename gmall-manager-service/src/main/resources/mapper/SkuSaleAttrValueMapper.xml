@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper SYSTEM "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.atguigu.gmall.manager.mapper.SkuSaleAttrValueMapper">
+
+    <resultMap id="skuSaleAttrValueMap" type="com.atguigu.gmall.bean.SkuSaleAttrValue" autoMapping="true">
+        <id property="id" column="id"></id>
+    </resultMap>
+
+    <!--
+    根据spuId查询对应的销售属性以及销售属性值
+    从后台数据库查询出该spu下的所有skuId和属性值关联关系。然后加工成如上的Json串
+    通过点击sku属性以及属性值切换到对应的skuInfo上
+    -->
+    <select id="selectSkuSaleAttrValueListBySpu" resultMap="skuSaleAttrValueMap">
+        SELECT
+        sale_attr_value_id,
+        sku_id,
+        sale_attr_value_name
+        FROM
+        sku_sale_attr_value ssav,
+        sku_info si
+        WHERE
+        ssav.sku_id = si.id
+        AND si.spu_id = #{0}
+        ORDER BY si.id ,ssav.sale_attr_id
+
+
+    </select>
+
+</mapper>
